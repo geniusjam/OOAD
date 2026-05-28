@@ -15,5 +15,10 @@ public class Cart {
     public String getCustomerId() { return customerId; }
     public List<OrderItem> getItems() { return items; }
     public void addItem(OrderItem item) { this.items.add(item); }
+
+    public boolean removeItem(String productId) {
+        return items.removeIf(i -> i.getProductId().equals(productId));
+    }
+
     public void clear() { this.items.clear(); }
 }

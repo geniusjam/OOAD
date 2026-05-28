@@ -1,11 +1,13 @@
 package ecommerce.infrastructure;
 
 import ecommerce.domain.Order;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class InMemoryOrderRepository implements OrderRepository {
-    private Map<String, Order> database = new HashMap<>();
+    private final Map<String, Order> database = new HashMap<>();
 
     @Override
     public void save(Order order) {
@@ -15,5 +17,10 @@ public class InMemoryOrderRepository implements OrderRepository {
     @Override
     public Order findById(String orderId) {
         return database.get(orderId);
+    }
+
+    @Override
+    public List<Order> findAll() {
+        return new ArrayList<>(database.values());
     }
 }
