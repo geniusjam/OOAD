@@ -14,4 +14,5 @@ public class OrderItem {
     public String getProductId() { return productId; }
     public int getQuantity() { return quantity; }
     public double getUnitPrice() { return unitPrice; }
+    public void setQuantity(int quantity) { this.quantity = quantity; }
 }

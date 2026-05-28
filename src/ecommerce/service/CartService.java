@@ -33,6 +33,15 @@ public class CartService {
         return cart.removeItem(productId);
     }
 
+    public boolean updateQuantity(String customerId, String productId, int quantity) {
+        Product product = productService.getProduct(productId);
+        if (product == null) return false;
+        if (product.getStockQuantity() < quantity) return false;
+        Cart cart = carts.get(customerId);
+        if (cart == null) return false;
+        return cart.updateQuantity(productId, quantity);
+    }
+
     public void clearCart(String customerId) {
         Cart cart = carts.get(customerId);
         if (cart != null) cart.clear();

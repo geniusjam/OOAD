@@ -57,7 +57,8 @@ public class ConsoleUI {
             System.out.println("3. List all products");
             System.out.println("4. Search products");
             System.out.println("5. Generate order report");
-            System.out.println("6. Back");
+            System.out.println("6. Manage order status");
+            System.out.println("7. Back");
             System.out.print("Choose: ");
             switch (scanner.nextLine().trim()) {
                 case "1" -> addProduct();
@@ -65,7 +66,8 @@ public class ConsoleUI {
                 case "3" -> listProducts(productService.getAllProducts());
                 case "4" -> searchProducts();
                 case "5" -> adminReport();
-                case "6" -> { return; }
+                case "6" -> manageOrderStatus();
+                case "7" -> { return; }
                 default -> System.out.println("Invalid choice.");
             }
         }
@@ -146,22 +148,24 @@ public class ConsoleUI {
             System.out.println("\n-- Customer Menu (" + customerId + ") --");
             System.out.println("1. Browse / add item to cart");
             System.out.println("2. Remove item from cart");
-            System.out.println("3. Show cart");
-            System.out.println("4. Search products");
-            System.out.println("5. Checkout");
-            System.out.println("6. Cancel order");
-            System.out.println("7. Track order");
-            System.out.println("8. Back");
+            System.out.println("3. Update item quantity");
+            System.out.println("4. Show cart");
+            System.out.println("5. Search products");
+            System.out.println("6. Checkout");
+            System.out.println("7. Cancel order");
+            System.out.println("8. Track order");
+            System.out.println("9. Back");
             System.out.print("Choose: ");
             switch (scanner.nextLine().trim()) {
                 case "1" -> addToCart(customerId);
                 case "2" -> removeFromCart(customerId);
-                case "3" -> showCart(customerId);
-                case "4" -> searchProducts();
-                case "5" -> checkout(customerId);
-                case "6" -> cancelOrder(customerId);
-                case "7" -> trackOrder(customerId);
-                case "8" -> { return; }
+                case "3" -> updateCartQuantity(customerId);
+                case "4" -> showCart(customerId);
+                case "5" -> searchProducts();
+                case "6" -> checkout(customerId);
+                case "7" -> cancelOrder(customerId);
+                case "8" -> trackOrder(customerId);
+                case "9" -> { return; }
                 default -> System.out.println("Invalid choice.");
             }
         }
@@ -260,6 +264,67 @@ public class ConsoleUI {
         String orderId = scanner.nextLine().trim();
         Order order = orderService.trackOrder(customerId, false, orderId);
         if (order != null) printOrderDetails(order);
+    }
+
+    private void updateCartQuantity(String customerId) {
+        var cart = cartService.getCart(customerId);
+        List<OrderItem> items = cart.getItems();
+        if (items.isEmpty()) {
+            System.out.println("Cart is empty.");
+            return;
+        }
+        for (int i = 0; i < items.size(); i++) {
+            OrderItem item = items.get(i);
+            Product p = productService.getProduct(item.getProductId());
+            String name = p != null ? p.getName() : item.getProductId();
+            System.out.println((i + 1) + ". " + name + " x" + item.getQuantity());
+        }
+        int idx = readPositiveInt("Pick item to update: ");
+        if (idx < 1 || idx > items.size()) {
+            System.out.println("Invalid number.");
+            return;
+        }
+        int qty = readPositiveInt("New quantity: ");
+        String productId = items.get(idx - 1).getProductId();
+        if (cartService.updateQuantity(customerId, productId, qty)) {
+            System.out.println("Quantity updated.");
+        } else {
+            System.out.println("Could not update quantity. Check available stock.");
+        }
+    }
+
+    private void manageOrderStatus() {
+        List<Order> orders = orderService.getAllOrders();
+        if (orders.isEmpty()) {
+            System.out.println("No orders.");
+            return;
+        }
+        for (int i = 0; i < orders.size(); i++) {
+            Order o = orders.get(i);
+            System.out.println((i + 1) + ". " + o.getOrderId()
+                    + " [" + o.getStatus() + "] customer: " + o.getCustomerId());
+        }
+        int idx = readPositiveInt("Pick order: ");
+        if (idx < 1 || idx > orders.size()) {
+            System.out.println("Invalid number.");
+            return;
+        }
+        Order order = orders.get(idx - 1);
+        System.out.println("Action: 1. Mark SHIPPED  2. Mark DELIVERED");
+        System.out.print("Choose: ");
+        switch (scanner.nextLine().trim()) {
+            case "1" -> {
+                if (orderService.shipOrder(order.getOrderId())) {
+                    System.out.println("Order marked as SHIPPED.");
+                }
+            }
+            case "2" -> {
+                if (orderService.deliverOrder(order.getOrderId())) {
+                    System.out.println("Order marked as DELIVERED.");
+                }
+            }
+            default -> System.out.println("Invalid choice.");
+        }
     }
 
     private void listProducts(List<Product> products) {

@@ -85,6 +85,36 @@ public class OrderService {
         return true;
     }
 
+    public boolean shipOrder(String orderId) {
+        Order order = orderRepository.findById(orderId);
+        if (order == null) {
+            System.out.println("Order not found: " + orderId);
+            return false;
+        }
+        if (order.getStatus() != OrderStatus.CONFIRMED) {
+            System.out.println("Order must be CONFIRMED to ship. Current status: " + order.getStatus());
+            return false;
+        }
+        order.setStatus(OrderStatus.SHIPPED);
+        notifyObservers(order);
+        return true;
+    }
+
+    public boolean deliverOrder(String orderId) {
+        Order order = orderRepository.findById(orderId);
+        if (order == null) {
+            System.out.println("Order not found: " + orderId);
+            return false;
+        }
+        if (order.getStatus() != OrderStatus.SHIPPED) {
+            System.out.println("Order must be SHIPPED to deliver. Current status: " + order.getStatus());
+            return false;
+        }
+        order.setStatus(OrderStatus.DELIVERED);
+        notifyObservers(order);
+        return true;
+    }
+
     public Order trackOrder(String requesterId, boolean isAdmin, String orderId) {
         Order order = orderRepository.findById(orderId);
         if (order == null) {

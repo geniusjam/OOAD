@@ -20,5 +20,15 @@ public class Cart {
         return items.removeIf(i -> i.getProductId().equals(productId));
     }
 
+    public boolean updateQuantity(String productId, int quantity) {
+        for (OrderItem item : items) {
+            if (item.getProductId().equals(productId)) {
+                item.setQuantity(quantity);
+                return true;
+            }
+        }
+        return false;
+    }
+
     public void clear() { this.items.clear(); }
 }
