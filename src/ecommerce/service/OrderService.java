@@ -7,22 +7,31 @@ import ecommerce.domain.PaymentMethod;
 import ecommerce.domain.PaymentStatus;
 import ecommerce.infrastructure.OrderRepository;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class OrderService {
     private final CartService cartService;
     private final ProductService productService;
     private final PaymentService paymentService;
-    private final NotificationService notificationService;
     private final OrderRepository orderRepository;
+    private final List<OrderObserver> observers = new ArrayList<>();
 
-    public OrderService(CartService cart, ProductService prod, PaymentService pay,
-                        NotificationService notif, OrderRepository repo) {
+    public OrderService(CartService cart, ProductService prod, PaymentService pay, OrderRepository repo) {
         this.cartService = cart;
         this.productService = prod;
         this.paymentService = pay;
-        this.notificationService = notif;
         this.orderRepository = repo;
+    }
+
+    public void addObserver(OrderObserver observer) {
+        observers.add(observer);
+    }
+
+    private void notifyObservers(Order order) {
+        for (OrderObserver observer : observers) {
+            observer.onOrderStatusChanged(order);
+        }
     }
 
     public String placeOrder(String customerId, PaymentMethod method, String paymentDetails) {
@@ -45,13 +54,13 @@ public class OrderService {
 
         if (paymentStatus == PaymentStatus.APPROVED) {
             order.setStatus(OrderStatus.CONFIRMED);
+            notifyObservers(order);
             cartService.clearCart(customerId);
-            notificationService.notifyCustomer(customerId, "Your order " + order.getOrderId() + " is CONFIRMED.");
             return order.getOrderId();
         } else {
             productService.restoreStock(order.getItems());
             order.setStatus(OrderStatus.CANCELLED);
-            notificationService.notifyCustomer(customerId, "Your order was CANCELLED (payment declined).");
+            notifyObservers(order);
             return null;
         }
     }
@@ -72,7 +81,7 @@ public class OrderService {
         }
         order.setStatus(OrderStatus.CANCELLED);
         productService.restoreStock(order.getItems());
-        notificationService.notifyCustomer(customerId, "Your order " + orderId + " has been CANCELLED.");
+        notifyObservers(order);
         return true;
     }
 

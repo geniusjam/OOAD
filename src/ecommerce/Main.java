@@ -20,7 +20,8 @@ public class Main {
         OrderRepository orderRepository = new InMemoryOrderRepository();
 
         OrderService orderService = new OrderService(
-                cartService, productService, paymentService, notifService, orderRepository);
+                cartService, productService, paymentService, orderRepository);
+        orderService.addObserver(notifService);
 
         ReportService reportService = new ReportService(orderService);
 
