@@ -1,6 +1,8 @@
 package ecommerce.service;
 
+import ecommerce.domain.PaymentStatus;
+
 public interface PaymentStrategy {
     boolean validate(String paymentDetails);
-    boolean pay(double amount, String details);
+    PaymentStatus pay(double amount, String details);
 }

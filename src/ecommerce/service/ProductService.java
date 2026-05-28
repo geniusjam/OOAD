@@ -21,6 +21,18 @@ public class ProductService {
         productRepository.remove(productId);
     }
 
+    public boolean updateProduct(String productId, String name, String description,
+                                 String category, double price, int stock) {
+        Product product = productRepository.findById(productId);
+        if (product == null) return false;
+        product.setName(name);
+        product.setDescription(description);
+        product.setCategory(category);
+        product.setPrice(price);
+        product.setStockQuantity(stock);
+        return true;
+    }
+
     public Product getProduct(String productId) {
         return productRepository.findById(productId);
     }

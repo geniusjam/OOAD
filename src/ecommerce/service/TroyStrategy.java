@@ -1,5 +1,7 @@
 package ecommerce.service;
 
+import ecommerce.domain.PaymentStatus;
+
 public class TroyStrategy implements PaymentStrategy {
     @Override
     public boolean validate(String paymentDetails) {
@@ -7,7 +9,7 @@ public class TroyStrategy implements PaymentStrategy {
     }
 
     @Override
-    public boolean pay(double amount, String details) {
-        return true;
+    public PaymentStatus pay(double amount, String details) {
+        return PaymentStatus.APPROVED;
     }
 }

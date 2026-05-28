@@ -54,20 +54,22 @@ public class ConsoleUI {
             System.out.println("\n-- Admin Menu --");
             System.out.println("1. Add product");
             System.out.println("2. Remove product");
-            System.out.println("3. List all products");
-            System.out.println("4. Search products");
-            System.out.println("5. Generate order report");
-            System.out.println("6. Manage order status");
-            System.out.println("7. Back");
+            System.out.println("3. Modify product");
+            System.out.println("4. List all products");
+            System.out.println("5. Search products");
+            System.out.println("6. Generate order report");
+            System.out.println("7. Manage order status");
+            System.out.println("8. Back");
             System.out.print("Choose: ");
             switch (scanner.nextLine().trim()) {
                 case "1" -> addProduct();
                 case "2" -> removeProduct();
-                case "3" -> listProducts(productService.getAllProducts());
-                case "4" -> searchProducts();
-                case "5" -> adminReport();
-                case "6" -> manageOrderStatus();
-                case "7" -> { return; }
+                case "3" -> modifyProduct();
+                case "4" -> listProducts(productService.getAllProducts());
+                case "5" -> searchProducts();
+                case "6" -> adminReport();
+                case "7" -> manageOrderStatus();
+                case "8" -> { return; }
                 default -> System.out.println("Invalid choice.");
             }
         }
@@ -97,6 +99,34 @@ public class ConsoleUI {
         }
         productService.remove(id);
         System.out.println("Product removed.");
+    }
+
+    private void modifyProduct() {
+        System.out.print("Product ID to modify: ");
+        String id = scanner.nextLine().trim();
+        Product existing = productService.getProduct(id);
+        if (existing == null) {
+            System.out.println("Product not found.");
+            return;
+        }
+        System.out.println("Current values shown in brackets. Press Enter to keep.");
+        System.out.print("Name [" + existing.getName() + "]: ");
+        String name = scanner.nextLine().trim();
+        if (name.isEmpty()) name = existing.getName();
+        System.out.print("Description [" + existing.getDescription() + "]: ");
+        String desc = scanner.nextLine().trim();
+        if (desc.isEmpty()) desc = existing.getDescription();
+        System.out.print("Category [" + existing.getCategory() + "]: ");
+        String cat = scanner.nextLine().trim();
+        if (cat.isEmpty()) cat = existing.getCategory();
+        System.out.print("Price [" + existing.getPrice() + "]: ");
+        String priceInput = scanner.nextLine().trim();
+        double price = priceInput.isEmpty() ? existing.getPrice() : Double.parseDouble(priceInput);
+        System.out.print("Stock [" + existing.getStockQuantity() + "]: ");
+        String stockInput = scanner.nextLine().trim();
+        int stock = stockInput.isEmpty() ? existing.getStockQuantity() : Integer.parseInt(stockInput);
+        productService.updateProduct(id, name, desc, cat, price, stock);
+        System.out.println("Product updated.");
     }
 
     private void searchProducts() {

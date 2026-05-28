@@ -15,9 +15,7 @@ public class ReportService {
     }
 
     public List<Order> filterByStatus(OrderStatus status) {
-        return orderService.getAllOrders().stream()
-                .filter(o -> o.getStatus() == status)
-                .collect(Collectors.toList());
+        return orderService.getOrdersByStatus(status);
     }
 
     public List<Order> filterByDateRange(LocalDateTime from, LocalDateTime to) {

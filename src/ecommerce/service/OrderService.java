@@ -131,4 +131,12 @@ public class OrderService {
     public List<Order> getAllOrders() {
         return orderRepository.findAll();
     }
+
+    public List<Order> getOrdersByCustomer(String customerId) {
+        return orderRepository.findByCustomer(customerId);
+    }
+
+    public List<Order> getOrdersByStatus(OrderStatus status) {
+        return orderRepository.findByStatus(status);
+    }
 }

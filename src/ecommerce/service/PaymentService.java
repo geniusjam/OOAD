@@ -24,9 +24,7 @@ public class PaymentService {
         }
 
         payment.setStatus(PaymentStatus.PROCESSING);
-        boolean success = strategy.pay(amount, paymentDetails);
-
-        payment.setStatus(success ? PaymentStatus.APPROVED : PaymentStatus.DECLINED);
+        payment.setStatus(strategy.pay(amount, paymentDetails));
         return payment.getStatus();
     }
 
