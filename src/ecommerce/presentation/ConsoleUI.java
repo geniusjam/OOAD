@@ -179,20 +179,36 @@ public class ConsoleUI {
             System.out.println("Invalid number.");
             return;
         }
+        Product chosen = all.get(idx - 1);
         int qty = readPositiveInt("Quantity: ");
-        if (cartService.addItem(customerId, all.get(idx - 1).getProductId(), qty)) {
-            System.out.println("Added to cart.");
+        if (qty > chosen.getStockQuantity()) {
+            System.out.println("Not enough stock. Available: " + chosen.getStockQuantity());
+            return;
         }
+        cartService.addItem(customerId, chosen.getProductId(), qty);
+        System.out.println("Added to cart.");
     }
 
     private void removeFromCart(String customerId) {
-        System.out.print("Product ID to remove: ");
-        String pid = scanner.nextLine().trim();
-        if (cartService.removeItem(customerId, pid)) {
-            System.out.println("Item removed from cart.");
-        } else {
-            System.out.println("Item not found in cart.");
+        var cart = cartService.getCart(customerId);
+        List<OrderItem> items = cart.getItems();
+        if (items.isEmpty()) {
+            System.out.println("Cart is empty.");
+            return;
         }
+        for (int i = 0; i < items.size(); i++) {
+            OrderItem item = items.get(i);
+            Product p = productService.getProduct(item.getProductId());
+            String name = p != null ? p.getName() : item.getProductId();
+            System.out.println((i + 1) + ". " + name + " x" + item.getQuantity());
+        }
+        int idx = readPositiveInt("Pick item to remove: ");
+        if (idx < 1 || idx > items.size()) {
+            System.out.println("Invalid number.");
+            return;
+        }
+        cartService.removeItem(customerId, items.get(idx - 1).getProductId());
+        System.out.println("Item removed from cart.");
     }
 
     private void showCart(String customerId) {
@@ -206,7 +222,9 @@ public class ConsoleUI {
         for (OrderItem item : cart.getItems()) {
             double line = item.getUnitPrice() * item.getQuantity();
             total += line;
-            System.out.println("  " + item.getProductId() + " x" + item.getQuantity()
+            Product p = productService.getProduct(item.getProductId());
+            String name = p != null ? p.getName() : item.getProductId();
+            System.out.println("  " + name + " x" + item.getQuantity()
                     + " @ " + item.getUnitPrice() + " = " + line);
         }
         System.out.println("  Total: " + total);
@@ -223,10 +241,6 @@ public class ConsoleUI {
         System.out.print("Card number: ");
         String cardNumber = scanner.nextLine().trim();
 
-        System.out.println("[Payment] Status: INITIATED");
-        System.out.println("[Payment] Status: VALIDATING");
-        System.out.println("[Payment] Status: PROCESSING");
-
         String orderId = orderService.placeOrder(customerId, method, cardNumber);
         if (orderId != null) {
             System.out.println("Order " + orderId + " placed successfully.");
@@ -236,7 +250,9 @@ public class ConsoleUI {
     private void cancelOrder(String customerId) {
         System.out.print("Order ID to cancel: ");
         String orderId = scanner.nextLine().trim();
-        orderService.cancelOrder(customerId, orderId);
+        if (orderService.cancelOrder(customerId, orderId)) {
+            System.out.println("Order " + orderId + " cancelled.");
+        }
     }
 
     private void trackOrder(String customerId) {

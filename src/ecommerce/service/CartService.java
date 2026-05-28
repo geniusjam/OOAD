@@ -21,14 +21,8 @@ public class CartService {
 
     public boolean addItem(String customerId, String productId, int quantity) {
         Product product = productService.getProduct(productId);
-        if (product == null) {
-            System.out.println("Product not found: " + productId);
-            return false;
-        }
-        if (product.getStockQuantity() < quantity) {
-            System.out.println("Not enough stock. Available: " + product.getStockQuantity());
-            return false;
-        }
+        if (product == null) return false;
+        if (product.getStockQuantity() < quantity) return false;
         getCart(customerId).addItem(new OrderItem(productId, quantity, product.getPrice()));
         return true;
     }

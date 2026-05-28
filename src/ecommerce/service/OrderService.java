@@ -47,32 +47,33 @@ public class OrderService {
             order.setStatus(OrderStatus.CONFIRMED);
             cartService.clearCart(customerId);
             notificationService.notifyCustomer(customerId, "Your order " + order.getOrderId() + " is CONFIRMED.");
+            return order.getOrderId();
         } else {
             productService.restoreStock(order.getItems());
             order.setStatus(OrderStatus.CANCELLED);
             notificationService.notifyCustomer(customerId, "Your order was CANCELLED (payment declined).");
+            return null;
         }
-
-        return order.getOrderId();
     }
 
-    public void cancelOrder(String customerId, String orderId) {
+    public boolean cancelOrder(String customerId, String orderId) {
         Order order = orderRepository.findById(orderId);
         if (order == null) {
             System.out.println("Order not found: " + orderId);
-            return;
+            return false;
         }
         if (!order.getCustomerId().equals(customerId)) {
             System.out.println("You do not own this order.");
-            return;
+            return false;
         }
         if (order.getStatus() != OrderStatus.PENDING && order.getStatus() != OrderStatus.CONFIRMED) {
             System.out.println("Order cannot be cancelled in status: " + order.getStatus());
-            return;
+            return false;
         }
         order.setStatus(OrderStatus.CANCELLED);
         productService.restoreStock(order.getItems());
         notificationService.notifyCustomer(customerId, "Your order " + orderId + " has been CANCELLED.");
+        return true;
     }
 
     public Order trackOrder(String requesterId, boolean isAdmin, String orderId) {
