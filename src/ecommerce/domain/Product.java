@@ -28,6 +28,7 @@ public class Product {
     public void setCategory(String category) { this.category = category; }
     public void setPrice(double price) { this.price = price; }
     public void setStockQuantity(int stockQuantity) { this.stockQuantity = stockQuantity; }
+    public boolean isInStock() { return stockQuantity > 0; }
     public void reduceStock(int amount) { this.stockQuantity -= amount; }
     public void restoreStock(int amount) { this.stockQuantity += amount; }
 }

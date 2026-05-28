@@ -2,6 +2,7 @@ package ecommerce.service;
 
 import ecommerce.domain.Cart;
 import ecommerce.domain.Order;
+import ecommerce.domain.OrderItem;
 import ecommerce.domain.OrderStatus;
 import ecommerce.domain.PaymentMethod;
 import ecommerce.domain.PaymentStatus;
@@ -41,13 +42,14 @@ public class OrderService {
             return null;
         }
 
-        boolean reserved = productService.reduceStock(cart.getItems());
+        List<OrderItem> orderItems = cartService.getOrderItems(customerId);
+        boolean reserved = productService.reduceStock(orderItems);
         if (!reserved) {
             System.out.println("One or more items are out of stock. Order cannot be placed.");
             return null;
         }
 
-        Order order = new Order("ORD-" + System.currentTimeMillis(), customerId, cart.getItems());
+        Order order = new Order("ORD-" + System.currentTimeMillis(), customerId, orderItems);
         orderRepository.save(order);
 
         PaymentStatus paymentStatus = paymentService.processPayment(order, method, paymentDetails);

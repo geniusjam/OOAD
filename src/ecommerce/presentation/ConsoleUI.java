@@ -1,5 +1,6 @@
 package ecommerce.presentation;
 
+import ecommerce.domain.CartItem;
 import ecommerce.domain.Order;
 import ecommerce.domain.OrderItem;
 import ecommerce.domain.OrderStatus;
@@ -225,23 +226,21 @@ public class ConsoleUI {
 
     private void removeFromCart(String customerId) {
         var cart = cartService.getCart(customerId);
-        List<OrderItem> items = cart.getItems();
+        List<CartItem> items = cart.getItems();
         if (items.isEmpty()) {
             System.out.println("Cart is empty.");
             return;
         }
         for (int i = 0; i < items.size(); i++) {
-            OrderItem item = items.get(i);
-            Product p = productService.getProduct(item.getProductId());
-            String name = p != null ? p.getName() : item.getProductId();
-            System.out.println((i + 1) + ". " + name + " x" + item.getQuantity());
+            CartItem item = items.get(i);
+            System.out.println((i + 1) + ". " + item.getProduct().getName() + " x" + item.getQuantity());
         }
         int idx = readPositiveInt("Pick item to remove: ");
         if (idx < 1 || idx > items.size()) {
             System.out.println("Invalid number.");
             return;
         }
-        cartService.removeItem(customerId, items.get(idx - 1).getProductId());
+        cartService.removeItem(customerId, items.get(idx - 1).getProduct().getProductId());
         System.out.println("Item removed from cart.");
     }
 
@@ -253,13 +252,10 @@ public class ConsoleUI {
         }
         System.out.println("Cart for " + customerId + ":");
         double total = 0;
-        for (OrderItem item : cart.getItems()) {
-            double line = item.getUnitPrice() * item.getQuantity();
-            total += line;
-            Product p = productService.getProduct(item.getProductId());
-            String name = p != null ? p.getName() : item.getProductId();
-            System.out.println("  " + name + " x" + item.getQuantity()
-                    + " @ " + item.getUnitPrice() + " = " + line);
+        for (CartItem item : cart.getItems()) {
+            total += item.getSubtotal();
+            System.out.println("  " + item.getProduct().getName() + " x" + item.getQuantity()
+                    + " @ " + item.getProduct().getPrice() + " = " + item.getSubtotal());
         }
         System.out.println("  Total: " + total);
     }
@@ -298,16 +294,14 @@ public class ConsoleUI {
 
     private void updateCartQuantity(String customerId) {
         var cart = cartService.getCart(customerId);
-        List<OrderItem> items = cart.getItems();
+        List<CartItem> items = cart.getItems();
         if (items.isEmpty()) {
             System.out.println("Cart is empty.");
             return;
         }
         for (int i = 0; i < items.size(); i++) {
-            OrderItem item = items.get(i);
-            Product p = productService.getProduct(item.getProductId());
-            String name = p != null ? p.getName() : item.getProductId();
-            System.out.println((i + 1) + ". " + name + " x" + item.getQuantity());
+            CartItem item = items.get(i);
+            System.out.println((i + 1) + ". " + item.getProduct().getName() + " x" + item.getQuantity());
         }
         int idx = readPositiveInt("Pick item to update: ");
         if (idx < 1 || idx > items.size()) {
@@ -315,7 +309,7 @@ public class ConsoleUI {
             return;
         }
         int qty = readPositiveInt("New quantity: ");
-        String productId = items.get(idx - 1).getProductId();
+        String productId = items.get(idx - 1).getProduct().getProductId();
         if (cartService.updateQuantity(customerId, productId, qty)) {
             System.out.println("Quantity updated.");
         } else {

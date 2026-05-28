@@ -15,4 +15,5 @@ public class OrderItem {
     public int getQuantity() { return quantity; }
     public double getUnitPrice() { return unitPrice; }
     public void setQuantity(int quantity) { this.quantity = quantity; }
+    public double getSubtotal() { return unitPrice * quantity; }
 }

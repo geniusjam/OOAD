@@ -1,10 +1,13 @@
 package ecommerce.service;
 
 import ecommerce.domain.Cart;
+import ecommerce.domain.CartItem;
 import ecommerce.domain.OrderItem;
 import ecommerce.domain.Product;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class CartService {
@@ -23,7 +26,7 @@ public class CartService {
         Product product = productService.getProduct(productId);
         if (product == null) return false;
         if (product.getStockQuantity() < quantity) return false;
-        getCart(customerId).addItem(new OrderItem(productId, quantity, product.getPrice()));
+        getCart(customerId).addItem(new CartItem(product, quantity));
         return true;
     }
 
@@ -45,5 +48,13 @@ public class CartService {
     public void clearCart(String customerId) {
         Cart cart = carts.get(customerId);
         if (cart != null) cart.clear();
+    }
+
+    public List<OrderItem> getOrderItems(String customerId) {
+        List<OrderItem> result = new ArrayList<>();
+        for (CartItem ci : getCart(customerId).getItems()) {
+            result.add(new OrderItem(ci.getProduct().getProductId(), ci.getQuantity(), ci.getProduct().getPrice()));
+        }
+        return result;
     }
 }
