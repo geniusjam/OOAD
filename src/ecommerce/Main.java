@@ -1,11 +1,15 @@
 package ecommerce;
 
 import ecommerce.domain.Product;
+import ecommerce.domain.UserRole;
 import ecommerce.infrastructure.InMemoryOrderRepository;
 import ecommerce.infrastructure.InMemoryProductRepository;
+import ecommerce.infrastructure.InMemoryUserRepository;
 import ecommerce.infrastructure.OrderRepository;
 import ecommerce.infrastructure.ProductRepository;
+import ecommerce.infrastructure.UserRepository;
 import ecommerce.presentation.ConsoleUI;
+import ecommerce.service.AuthService;
 import ecommerce.service.CartService;
 import ecommerce.service.NotificationService;
 import ecommerce.service.OrderService;
@@ -15,6 +19,11 @@ import ecommerce.service.ReportService;
 
 public class Main {
     public static void main(String[] args) {
+        UserRepository userRepository = new InMemoryUserRepository();
+        AuthService authService = new AuthService(userRepository);
+        authService.register("admin", "admin@eops.com", "admin123", UserRole.ADMIN);
+        authService.register("customer1", "customer1@eops.com", "pass123", UserRole.CUSTOMER);
+
         ProductRepository productRepository = new InMemoryProductRepository();
         ProductService productService = new ProductService(productRepository);
         CartService cartService = new CartService(productService);
@@ -39,6 +48,6 @@ public class Main {
         productService.register(new Product("P9", "Headphones", "Noise cancelling", "Electronics", 199.99, 10));
         productService.register(new Product("P10", "Webcam", "1080p webcam", "Electronics", 89.99, 12));
 
-        new ConsoleUI(orderService, cartService, productService, reportService).start();
+        new ConsoleUI(orderService, cartService, productService, reportService, authService).start();
     }
 }

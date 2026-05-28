@@ -6,6 +6,9 @@ import ecommerce.domain.OrderItem;
 import ecommerce.domain.OrderStatus;
 import ecommerce.domain.PaymentMethod;
 import ecommerce.domain.Product;
+import ecommerce.domain.User;
+import ecommerce.domain.UserRole;
+import ecommerce.service.AuthService;
 import ecommerce.service.CartService;
 import ecommerce.service.OrderService;
 import ecommerce.service.ProductService;
@@ -22,31 +25,62 @@ public class ConsoleUI {
     private final CartService cartService;
     private final ProductService productService;
     private final ReportService reportService;
+    private final AuthService authService;
     private final Scanner scanner = new Scanner(System.in);
     private static final DateTimeFormatter DT_FMT = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
 
     public ConsoleUI(OrderService orderService, CartService cartService,
-                     ProductService productService, ReportService reportService) {
+                     ProductService productService, ReportService reportService,
+                     AuthService authService) {
         this.orderService = orderService;
         this.cartService = cartService;
         this.productService = productService;
         this.reportService = reportService;
+        this.authService = authService;
     }
 
     public void start() {
         System.out.println("--- E-Commerce Order Processing System ---");
         while (true) {
             System.out.println("\n=== Main Menu ===");
-            System.out.println("1. Admin");
-            System.out.println("2. Customer");
+            System.out.println("1. Login");
+            System.out.println("2. Register");
             System.out.println("3. Exit");
             System.out.print("Choose: ");
             switch (scanner.nextLine().trim()) {
-                case "1" -> adminMenu();
-                case "2" -> customerLogin();
+                case "1" -> loginFlow();
+                case "2" -> registerFlow();
                 case "3" -> { System.out.println("Goodbye."); return; }
                 default -> System.out.println("Invalid choice.");
             }
+        }
+    }
+
+    private void loginFlow() {
+        System.out.print("Username: ");
+        String username = scanner.nextLine().trim();
+        System.out.print("Password: ");
+        String password = scanner.nextLine().trim();
+        User user = authService.login(username, password);
+        if (user == null) return;
+        System.out.println("Welcome, " + user.getUsername() + "!");
+        if (user.getRole() == UserRole.ADMIN) {
+            adminMenu();
+        } else {
+            customerMenu(user.getUserId());
+        }
+    }
+
+    private void registerFlow() {
+        System.out.print("Username: ");
+        String username = scanner.nextLine().trim();
+        System.out.print("Email: ");
+        String email = scanner.nextLine().trim();
+        System.out.print("Password: ");
+        String password = scanner.nextLine().trim();
+        User user = authService.register(username, email, password, UserRole.CUSTOMER);
+        if (user != null) {
+            System.out.println("Registration successful. You can now log in.");
         }
     }
 
@@ -162,16 +196,6 @@ public class ConsoleUI {
             orders = reportService.filterByDateRange(from, to);
         }
         reportService.printReport(orders);
-    }
-
-    private void customerLogin() {
-        System.out.print("Enter Customer ID: ");
-        String customerId = scanner.nextLine().trim();
-        if (customerId.isEmpty()) {
-            System.out.println("Customer ID cannot be empty.");
-            return;
-        }
-        customerMenu(customerId);
     }
 
     private void customerMenu(String customerId) {
