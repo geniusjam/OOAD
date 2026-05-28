@@ -10,7 +10,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class CartService {
+public class CartService implements ICartService {
     private final Map<String, Cart> carts = new HashMap<>();
     private final ProductService productService;
 

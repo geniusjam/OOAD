@@ -4,6 +4,7 @@ import ecommerce.domain.OrderItem;
 import ecommerce.domain.Product;
 import ecommerce.infrastructure.ProductRepository;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class ProductService {
@@ -47,6 +48,17 @@ public class ProductService {
 
     public List<Product> searchByCategory(String category) {
         return productRepository.findByCategory(category);
+    }
+
+    public List<OrderItem> filterFulfillable(List<OrderItem> items) {
+        List<OrderItem> result = new ArrayList<>();
+        for (OrderItem item : items) {
+            Product p = productRepository.findById(item.getProductId());
+            if (p != null && p.getStockQuantity() >= item.getQuantity()) {
+                result.add(item);
+            }
+        }
+        return result;
     }
 
     public boolean reduceStock(List<OrderItem> items) {

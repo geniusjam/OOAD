@@ -61,6 +61,22 @@ public class OrderServiceTest {
     }
 
     @Test
+    void placeOrder_partialOrder_proceedsWithFulfillableItemsOnly() {
+        InMemoryProductRepository extraRepo = new InMemoryProductRepository();
+        extraRepo.save(new Product("P1", "Widget", "desc", "Tools", 10.0, 5));
+        extraRepo.save(new Product("P2", "Gadget", "desc", "Tools", 5.0, 0));
+        ProductService ps = new ProductService(extraRepo);
+        CartService cs = new CartService(ps);
+        OrderService os = new OrderService(cs, ps, new PaymentService(), new InMemoryOrderRepository());
+
+        cs.addItem("cust1", "P1", 2);
+        cs.addItem("cust1", "P2", 1); // out of stock
+        String orderId = os.placeOrder("cust1", PaymentMethod.MASTERCARD, "details");
+        assertNotNull(orderId);
+        assertEquals(3, ps.getProduct("P1").getStockQuantity());
+    }
+
+    @Test
     void placeOrder_restoresStockWhenPaymentDeclined() {
         cartService.addItem("cust1", "P1", 2);
         String orderId = orderService.placeOrder("cust1", PaymentMethod.VISA, ""); // blank → declined
@@ -104,6 +120,14 @@ public class OrderServiceTest {
         cartService.addItem("cust1", "P1", 1);
         String orderId = orderService.placeOrder("cust1", PaymentMethod.MASTERCARD, "details");
         assertFalse(orderService.cancelOrder("other", orderId));
+    }
+
+    @Test
+    void cancelOrder_refundsWhenCancellingConfirmedOrder() {
+        cartService.addItem("cust1", "P1", 1);
+        String orderId = orderService.placeOrder("cust1", PaymentMethod.MASTERCARD, "details");
+        assertNotNull(orderId);
+        assertTrue(orderService.cancelOrder("cust1", orderId));
     }
 
     @Test

@@ -12,13 +12,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class OrderService {
-    private final CartService cartService;
+    private final ICartService cartService;
     private final ProductService productService;
-    private final PaymentService paymentService;
+    private final IPaymentService paymentService;
     private final OrderRepository orderRepository;
     private final List<OrderObserver> observers = new ArrayList<>();
 
-    public OrderService(CartService cart, ProductService prod, PaymentService pay, OrderRepository repo) {
+    public OrderService(ICartService cart, ProductService prod, IPaymentService pay, OrderRepository repo) {
         this.cartService = cart;
         this.productService = prod;
         this.paymentService = pay;
@@ -42,14 +42,24 @@ public class OrderService {
             return null;
         }
 
-        List<OrderItem> orderItems = cartService.getOrderItems(customerId);
-        boolean reserved = productService.reduceStock(orderItems);
-        if (!reserved) {
-            System.out.println("One or more items are out of stock. Order cannot be placed.");
+        List<OrderItem> requested = cartService.getOrderItems(customerId);
+        List<OrderItem> fulfillable = productService.filterFulfillable(requested);
+
+        for (OrderItem item : requested) {
+            boolean kept = fulfillable.stream().anyMatch(f -> f.getProductId().equals(item.getProductId()));
+            if (!kept) {
+                System.out.println("Item removed from order (insufficient stock): " + item.getProductId());
+            }
+        }
+
+        if (fulfillable.isEmpty()) {
+            System.out.println("No items could be fulfilled. Order cannot be placed.");
             return null;
         }
 
-        Order order = new Order("ORD-" + System.currentTimeMillis(), customerId, orderItems);
+        productService.reduceStock(fulfillable);
+
+        Order order = new Order("ORD-" + System.currentTimeMillis(), customerId, fulfillable);
         orderRepository.save(order);
 
         PaymentStatus paymentStatus = paymentService.processPayment(order, method, paymentDetails);
@@ -80,6 +90,9 @@ public class OrderService {
         if (order.getStatus() != OrderStatus.PENDING && order.getStatus() != OrderStatus.CONFIRMED) {
             System.out.println("Order cannot be cancelled in status: " + order.getStatus());
             return false;
+        }
+        if (order.getStatus() == OrderStatus.CONFIRMED) {
+            paymentService.refund(order.getOrderId());
         }
         order.setStatus(OrderStatus.CANCELLED);
         productService.restoreStock(order.getItems());

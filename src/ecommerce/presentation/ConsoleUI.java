@@ -10,6 +10,7 @@ import ecommerce.domain.User;
 import ecommerce.domain.UserRole;
 import ecommerce.service.AuthService;
 import ecommerce.service.CartService;
+import ecommerce.service.ICartService;
 import ecommerce.service.OrderService;
 import ecommerce.service.ProductService;
 import ecommerce.service.ReportService;
@@ -22,14 +23,14 @@ import java.util.Scanner;
 
 public class ConsoleUI {
     private final OrderService orderService;
-    private final CartService cartService;
+    private final ICartService cartService;
     private final ProductService productService;
     private final ReportService reportService;
     private final AuthService authService;
     private final Scanner scanner = new Scanner(System.in);
     private static final DateTimeFormatter DT_FMT = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
 
-    public ConsoleUI(OrderService orderService, CartService cartService,
+    public ConsoleUI(OrderService orderService, ICartService cartService,
                      ProductService productService, ReportService reportService,
                      AuthService authService) {
         this.orderService = orderService;
