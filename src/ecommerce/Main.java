@@ -2,7 +2,9 @@ package ecommerce;
 
 import ecommerce.domain.Product;
 import ecommerce.infrastructure.InMemoryOrderRepository;
+import ecommerce.infrastructure.InMemoryProductRepository;
 import ecommerce.infrastructure.OrderRepository;
+import ecommerce.infrastructure.ProductRepository;
 import ecommerce.presentation.ConsoleUI;
 import ecommerce.service.CartService;
 import ecommerce.service.NotificationService;
@@ -13,7 +15,8 @@ import ecommerce.service.ReportService;
 
 public class Main {
     public static void main(String[] args) {
-        ProductService productService = new ProductService();
+        ProductRepository productRepository = new InMemoryProductRepository();
+        ProductService productService = new ProductService(productRepository);
         CartService cartService = new CartService(productService);
         PaymentService paymentService = new PaymentService();
         NotificationService notifService = new NotificationService();
